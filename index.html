@@ -89,26 +89,80 @@
 
   <button onclick="saveChanges()">Saglabāt izmaiņas</button>
 
-  <script>
-    const tg = window.Telegram.WebApp;
 
-    tg.ready();
-    tg.expand();
 
-    function saveChanges() {
-      const data = {
-        issue_description: document.getElementById('issue_description').value,
-        resolution: document.getElementById('resolution').value,
-        responsibility: document.getElementById('responsibility').value,
-        estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
-        notes: document.getElementById('notes').value,
-        priority: document.getElementById('priority').value
-      };
 
-      tg.sendData(JSON.stringify(data));
-      tg.close();
+
+
+
+<script>
+  const tg = window.Telegram.WebApp;
+
+  tg.ready();
+  tg.expand();
+
+  const params = new URLSearchParams(window.location.search);
+  const issueId = params.get('id');
+
+  const API_URL = 'https://dmitrij.app.n8n.cloud/webhook/telegram-issue-editor';
+
+  async function loadIssue() {
+    if (!issueId) {
+      alert('Issue ID nav atrasts');
+      return;
     }
-  </script>
+
+    try {
+      const response = await fetch(`${API_URL}?id=${encodeURIComponent(issueId)}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      document.getElementById('issue_description').value =
+        data.issue_description || '';
+
+      document.getElementById('resolution').value =
+        data.resolution || '';
+
+      document.getElementById('responsibility').value =
+        data.responsibility || '';
+
+      document.getElementById('estimated_resolution_date').value =
+        data.estimated_resolution_date || '';
+
+      document.getElementById('notes').value =
+        data.notes || '';
+
+      document.getElementById('priority').value =
+        data.priority || 'Low';
+
+    } catch (error) {
+      console.error(error);
+      alert('Neizdevās ielādēt ierakstu');
+    }
+  }
+
+  function saveChanges() {
+    const data = {
+      id: issueId,
+      issue_description: document.getElementById('issue_description').value,
+      resolution: document.getElementById('resolution').value,
+      responsibility: document.getElementById('responsibility').value,
+      estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
+      notes: document.getElementById('notes').value,
+      priority: document.getElementById('priority').value
+    };
+
+    tg.sendData(JSON.stringify(data));
+    tg.close();
+  }
+
+  loadIssue();
+</script>
+  
 
 </body>
 </html>
