@@ -145,21 +145,46 @@
     }
   }
 
-  function saveChanges() {
-    const data = {
-      id: issueId,
-      issue_description: document.getElementById('issue_description').value,
-      resolution: document.getElementById('resolution').value,
-      responsibility: document.getElementById('responsibility').value,
-      estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
-      notes: document.getElementById('notes').value,
-      priority: document.getElementById('priority').value
-    };
+  async function saveChanges() {
+  const data = {
+    id: issueId,
+    issue_description: document.getElementById('issue_description').value,
+    resolution: document.getElementById('resolution').value,
+    responsibility: document.getElementById('responsibility').value,
+    estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
+    notes: document.getElementById('notes').value,
+    priority: document.getElementById('priority').value
+  };
 
-    tg.sendData(JSON.stringify(data));
-    tg.close();
+  const UPDATE_URL =
+    'https://dmitrij.app.n8n.cloud/webhook/telegram-issue-editor-update';
+
+  try {
+    const response = await fetch(UPDATE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      tg.close();
+    } else {
+      alert('Neizdevās saglabāt izmaiņas');
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert('Neizdevās saglabāt izmaiņas');
   }
-
+}
   loadIssue();
 </script>
   
