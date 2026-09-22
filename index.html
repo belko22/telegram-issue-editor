@@ -100,7 +100,13 @@
 
   tg.ready();
   tg.expand();
+  
+const initData = new URLSearchParams(tg.initData);
 
+alert(
+  'Telegram data: ' + Boolean(tg.initData) +
+  '\nSignature: ' + initData.has('signature')
+);
   const params = new URLSearchParams(window.location.search);
   const issueId = params.get('id');
 
