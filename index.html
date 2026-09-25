@@ -101,6 +101,10 @@
     const API_URL =
       'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor';
 
+    const UPDATE_URL =
+      'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor-update';
+
+
     async function loadIssue() {
       if (!issueId) {
         alert('Issue ID nav atrasts');
@@ -108,81 +112,122 @@
       }
 
       try {
-        const response = await fetch(
-          `${API_URL}?id=${encodeURIComponent(issueId)}&initData=${encodeURIComponent(tg.initData)}`
-        );
+        const url =
+          `${API_URL}?id=${encodeURIComponent(issueId)}&initData=${encodeURIComponent(tg.initData)}`;
+
+        const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const text = await response.text();
+          throw new Error(`HTTP ${response.status}: ${text}`);
         }
 
-        const data = await response.json();
+        const raw = await response.json();
+
+        // n8n может вернуть как объект, так и массив с одним объектом
+        const data = Array.isArray(raw) ? raw[0] : raw;
+
+        if (!data) {
+          throw new Error('Empty response from n8n');
+        }
 
         document.getElementById('issue_description').value =
-          data.issue_description || '';
+          data.issue_description ?? '';
 
         document.getElementById('resolution').value =
-          data.resolution || '';
+          data.resolution ?? '';
 
         document.getElementById('responsibility').value =
-          data.responsibility || '';
+          data.responsibility ?? '';
 
         document.getElementById('estimated_resolution_date').value =
-          data.estimated_resolution_date || '';
+          data.estimated_resolution_date ?? '';
 
         document.getElementById('notes').value =
-          data.notes || '';
+          data.notes ?? '';
 
         document.getElementById('priority').value =
-          data.priority || 'Low';
+          data.priority ?? 'Low';
 
       } catch (error) {
         console.error(error);
-        alert('Neizdevās ielādēt ierakstu');
+
+        alert(
+          'Neizdevās ielādēt ierakstu\n\n' +
+          String(error.message || error)
+        );
       }
     }
 
+
     async function saveChanges() {
+      if (!issueId) {
+        alert('Issue ID nav atrasts');
+        return;
+      }
+
       const data = {
         id: issueId,
         initData: tg.initData,
-        issue_description: document.getElementById('issue_description').value,
-        resolution: document.getElementById('resolution').value,
-        responsibility: document.getElementById('responsibility').value,
-        estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
-        notes: document.getElementById('notes').value,
-        priority: document.getElementById('priority').value
-      };
 
-      const UPDATE_URL =
-        'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor-update';
+        issue_description:
+          document.getElementById('issue_description').value,
+
+        resolution:
+          document.getElementById('resolution').value,
+
+        responsibility:
+          document.getElementById('responsibility').value,
+
+        estimated_resolution_date:
+          document.getElementById('estimated_resolution_date').value,
+
+        notes:
+          document.getElementById('notes').value,
+
+        priority:
+          document.getElementById('priority').value
+      };
 
       try {
         const response = await fetch(UPDATE_URL, {
           method: 'POST',
+
           headers: {
             'Content-Type': 'application/json'
           },
+
           body: JSON.stringify(data)
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const text = await response.text();
+          throw new Error(`HTTP ${response.status}: ${text}`);
         }
 
-        const result = await response.json();
+        const raw = await response.json();
 
-        if (result.success) {
+        const result =
+          Array.isArray(raw) ? raw[0] : raw;
+
+        if (result && result.success) {
           tg.close();
         } else {
-          alert('Neizdevās saglabāt izmaiņas');
+          throw new Error(
+            'Server response does not contain success=true'
+          );
         }
 
       } catch (error) {
         console.error(error);
-        alert('Neizdevās saglabāt izmaiņas');
+
+        alert(
+          'Neizdevās saglabāt izmaiņas\n\n' +
+          String(error.message || error)
+        );
       }
     }
+
 
     loadIssue();
   </script>
