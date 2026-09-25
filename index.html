@@ -103,14 +103,11 @@
   
 const initData = new URLSearchParams(tg.initData);
 
-alert(
-  'Telegram data: ' + Boolean(tg.initData) +
-  '\nSignature: ' + initData.has('signature')
-);
+
   const params = new URLSearchParams(window.location.search);
   const issueId = params.get('id');
 
-  const API_URL = 'https://dmitrij.app.n8n.cloud/webhook/telegram-issue-editor';
+  const API_URL = 'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor';
 
   async function loadIssue() {
     if (!issueId) {
@@ -119,7 +116,7 @@ alert(
     }
 
     try {
-      const response = await fetch(`${API_URL}?id=${encodeURIComponent(issueId)}`);
+      const response = await fetch(`${API_URL}?id=${encodeURIComponent(issueId)}&initData=${encodeURIComponent(tg.initData)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
