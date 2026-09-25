@@ -89,108 +89,103 @@
 
   <button onclick="saveChanges()">Saglabāt izmaiņas</button>
 
+  <script>
+    const tg = window.Telegram.WebApp;
 
+    tg.ready();
+    tg.expand();
 
+    const params = new URLSearchParams(window.location.search);
+    const issueId = params.get('id');
 
+    const API_URL =
+      'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor';
 
-
-
-<script>
-  const tg = window.Telegram.WebApp;
-
-  tg.ready();
-  tg.expand();
-  
-const initData = new URLSearchParams(tg.initData);
-
-
-  const params = new URLSearchParams(window.location.search);
-  const issueId = params.get('id');
-
-  const API_URL = 'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor';
-
-  async function loadIssue() {
-    if (!issueId) {
-      alert('Issue ID nav atrasts');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}?id=${encodeURIComponent(issueId)}&initData=${encodeURIComponent(tg.initData)}`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+    async function loadIssue() {
+      if (!issueId) {
+        alert('Issue ID nav atrasts');
+        return;
       }
 
-      const data = await response.json();
+      try {
+        const response = await fetch(
+          `${API_URL}?id=${encodeURIComponent(issueId)}&initData=${encodeURIComponent(tg.initData)}`
+        );
 
-      document.getElementById('issue_description').value =
-        data.issue_description || '';
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-      document.getElementById('resolution').value =
-        data.resolution || '';
+        const data = await response.json();
 
-      document.getElementById('responsibility').value =
-        data.responsibility || '';
+        document.getElementById('issue_description').value =
+          data.issue_description || '';
 
-      document.getElementById('estimated_resolution_date').value =
-        data.estimated_resolution_date || '';
+        document.getElementById('resolution').value =
+          data.resolution || '';
 
-      document.getElementById('notes').value =
-        data.notes || '';
+        document.getElementById('responsibility').value =
+          data.responsibility || '';
 
-      document.getElementById('priority').value =
-        data.priority || 'Low';
+        document.getElementById('estimated_resolution_date').value =
+          data.estimated_resolution_date || '';
 
-    } catch (error) {
-      console.error(error);
-      alert('Neizdevās ielādēt ierakstu');
-    }
-  }
+        document.getElementById('notes').value =
+          data.notes || '';
 
-  async function saveChanges() {
-  const data = {
-    id: issueId,
-    issue_description: document.getElementById('issue_description').value,
-    resolution: document.getElementById('resolution').value,
-    responsibility: document.getElementById('responsibility').value,
-    estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
-    notes: document.getElementById('notes').value,
-    priority: document.getElementById('priority').value
-  };
+        document.getElementById('priority').value =
+          data.priority || 'Low';
 
-  const UPDATE_URL =
-    'https://dmitrij.app.n8n.cloud/webhook/telegram-issue-editor-update';
-
-  try {
-    const response = await fetch(UPDATE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      } catch (error) {
+        console.error(error);
+        alert('Neizdevās ielādēt ierakstu');
+      }
     }
 
-    const result = await response.json();
+    async function saveChanges() {
+      const data = {
+        id: issueId,
+        initData: tg.initData,
+        issue_description: document.getElementById('issue_description').value,
+        resolution: document.getElementById('resolution').value,
+        responsibility: document.getElementById('responsibility').value,
+        estimated_resolution_date: document.getElementById('estimated_resolution_date').value,
+        notes: document.getElementById('notes').value,
+        priority: document.getElementById('priority').value
+      };
 
-    if (result.success) {
-      tg.close();
-    } else {
-      alert('Neizdevās saglabāt izmaiņas');
+      const UPDATE_URL =
+        'https://desktop-96jgsq1.tailbed39b.ts.net/webhook/telegram-issue-editor-update';
+
+      try {
+        const response = await fetch(UPDATE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          tg.close();
+        } else {
+          alert('Neizdevās saglabāt izmaiņas');
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert('Neizdevās saglabāt izmaiņas');
+      }
     }
 
-  } catch (error) {
-    console.error(error);
-    alert('Neizdevās saglabāt izmaiņas');
-  }
-}
-  loadIssue();
-</script>
-  
+    loadIssue();
+  </script>
 
 </body>
 </html>
